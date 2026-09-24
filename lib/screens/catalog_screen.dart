@@ -3,9 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
-import 'summary_screen.dart';
 
-// Colores del diseño de Stitch (paleta slate/blue de Tailwind)
 const _brand = Color(0xFF1E88E5);
 const _blue50 = Color(0xFFEFF6FF);
 const _blue100 = Color(0xFFDBEAFE);
@@ -22,19 +20,6 @@ const _slate700 = Color(0xFF334155);
 const _slate800 = Color(0xFF1E293B);
 const _slate900 = Color(0xFF0F172A);
 
-const _requiredCount = 3;
-
-// Formatea 45000 -> $45.000
-String formatPrice(double value) {
-  final digits = value.round().toString();
-  final buffer = StringBuffer();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) buffer.write('.');
-    buffer.write(digits[i]);
-  }
-  return '\$$buffer';
-}
-
 class CatalogScreen extends StatelessWidget {
   const CatalogScreen({super.key});
 
@@ -46,7 +31,6 @@ class CatalogScreen extends StatelessWidget {
       backgroundColor: _slate50,
       body: Stack(
         children: [
-          // Degradado azul superior
           Container(
             height: 288,
             decoration: BoxDecoration(
@@ -65,20 +49,17 @@ class CatalogScreen extends StatelessWidget {
             bottom: false,
             child: Column(
               children: [
-                _Header(badgeCount: cart.selectedCount),
+                const _Header(),
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
-                      _ProgressBanner(selected: cart.selectedCount),
+                      const _ProgressBanner(),
                       const SizedBox(height: 16),
                       for (final product in cart.catalog) ...[
                         _ProductCard(
                           product: product,
                           selected: cart.selectedProducts.contains(product),
-                          // Si ya hay 3 seleccionados, los demás se atenúan
-                          disabled: cart.canProceed &&
-                              !cart.selectedProducts.contains(product),
                           onTap: () => context
                               .read<CartProvider>()
                               .toggleSelection(product),
@@ -95,21 +76,13 @@ class CatalogScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: _BottomBar(
-        enabled: cart.canProceed,
-        onContinue: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SummaryScreen()),
-        ),
-      ),
+      bottomNavigationBar: const _BottomBar(),
     );
   }
 }
 
 class _Header extends StatelessWidget {
-  final int badgeCount;
-
-  const _Header({required this.badgeCount});
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +90,9 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.8),
-        border: Border(bottom: BorderSide(color: _blue50.withValues(alpha: 0.6))),
+        border: Border(
+          bottom: BorderSide(color: _blue50.withValues(alpha: 0.6)),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,35 +114,31 @@ class _Header extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: _slate700,
-                ),
+                icon: const Icon(Icons.shopping_bag_outlined, color: _slate700),
                 tooltip: 'Carrito de compras',
               ),
-              if (badgeCount > 0)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: _brand,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Text(
-                      '$badgeCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: _brand,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Text(
+                    '2',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
+              ),
             ],
           ),
         ],
@@ -177,15 +148,10 @@ class _Header extends StatelessWidget {
 }
 
 class _ProgressBanner extends StatelessWidget {
-  final int selected;
-
-  const _ProgressBanner({required this.selected});
+  const _ProgressBanner();
 
   @override
   Widget build(BuildContext context) {
-    final missing = _requiredCount - selected;
-    final complete = missing == 0;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -215,10 +181,10 @@ class _ProgressBanner extends StatelessWidget {
                 child: const Icon(Icons.notes_rounded, size: 16, color: _brand),
               ),
               const SizedBox(width: 8),
-              Expanded(
+              const Expanded(
                 child: Text(
-                  '$selected de $_requiredCount productos seleccionados',
-                  style: const TextStyle(
+                  '2 de 3 productos seleccionados',
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: _slate800,
@@ -227,8 +193,10 @@ class _ProgressBanner extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _blue50,
                   borderRadius: BorderRadius.circular(999),
@@ -246,9 +214,9 @@ class _ProgressBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      complete ? 'Completo' : 'Falta $missing',
-                      style: const TextStyle(
+                    const Text(
+                      'Falta 1',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: _brand,
@@ -260,22 +228,18 @@ class _ProgressBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 1),
                 child: Icon(Icons.info, size: 14, color: _blue400),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  complete
-                      ? '¡Listo! Tu orden combinada está desbloqueada.'
-                      : missing == 1
-                          ? 'Selecciona un artículo más para desbloquear la orden combinada.'
-                          : 'Selecciona $missing artículos más para desbloquear la orden combinada.',
-                  style: const TextStyle(fontSize: 12, color: _slate500),
+                  'Selecciona un artículo más para desbloquear la orden combinada.',
+                  style: TextStyle(fontSize: 12, color: _slate500),
                 ),
               ),
             ],
@@ -289,86 +253,80 @@ class _ProgressBanner extends StatelessWidget {
 class _ProductCard extends StatelessWidget {
   final Product product;
   final bool selected;
-  final bool disabled;
   final VoidCallback onTap;
 
   const _ProductCard({
     required this.product,
     required this.selected,
-    required this.disabled,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: disabled ? 0.5 : 1,
-      child: GestureDetector(
-        onTap: disabled ? null : onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: selected ? _brand : _slate100,
-              width: selected ? 2 : 1,
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected ? _brand : _slate100,
+            width: selected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: selected
+                  ? _brand.withValues(alpha: 0.08)
+                  : _slate900.withValues(alpha: 0.03),
+              blurRadius: selected ? 16 : 12,
+              offset: Offset(0, selected ? 6 : 3),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: selected
-                    ? _brand.withValues(alpha: 0.08)
-                    : _slate900.withValues(alpha: 0.03),
-                blurRadius: selected ? 16 : 12,
-                offset: Offset(0, selected ? 6 : 3),
+          ],
+        ),
+        child: Row(
+          children: [
+            _Thumbnail(url: product.imageUrl),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: _slate900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    product.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: _slate500),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${product.price.toStringAsFixed(product.price % 1 == 0 ? 0 : 2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: _slate900,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              _Thumbnail(url: product.imageUrl),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: _slate900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      product.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: _slate500),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatPrice(product.price),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: _slate900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              _CheckCircle(selected: selected),
-              const SizedBox(width: 4),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            _CheckCircle(selected: selected),
+            const SizedBox(width: 4),
+          ],
         ),
       ),
     );
@@ -461,10 +419,7 @@ class _IncentiveBanner extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onContinue;
-
-  const _BottomBar({required this.enabled, required this.onContinue});
+  const _BottomBar();
 
   @override
   Widget build(BuildContext context) {
@@ -490,7 +445,7 @@ class _BottomBar extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: enabled ? onContinue : null,
+                  onPressed: null,
                   style: FilledButton.styleFrom(
                     backgroundColor: _brand,
                     foregroundColor: Colors.white,
@@ -514,23 +469,17 @@ class _BottomBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    enabled ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
-                    size: 14,
-                    color: enabled ? _brand : _slate400,
-                  ),
-                  const SizedBox(width: 6),
+                  Icon(Icons.lock_outline_rounded, size: 14, color: _slate400),
+                  SizedBox(width: 6),
                   Text(
-                    enabled
-                        ? 'Orden lista para continuar'
-                        : 'Selecciona 3 productos para continuar',
+                    'Selecciona 3 productos para continuar',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: enabled ? _brand : _slate400,
+                      color: _slate400,
                     ),
                   ),
                 ],

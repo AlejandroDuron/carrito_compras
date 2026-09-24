@@ -33,7 +33,7 @@ class CartProvider extends ChangeNotifier {
       id: '4',
       name: 'Termo de Acero Inoxidable',
       description: 'Aislamiento térmico 24h',
-      price: 225,
+      price: 22.50,
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuALxeGcuDL5z81mK5GI6aMDQirsjoJ8cqfXWWIouj4n3n3wp_IfDmkyRhykSy2sWq6A_xNdggMkas8p9xdmgtZVrCIP_F2y-Ry9NgyrjAPm5yQvZ97YW9EyF2BdwgiFdDiSSJqsH8SOvnpgmX5emQFsZ2DuRvKJ8IuVc_wQyKTVRQBHXNVOe8Br0PZMkLx0hl0KPGFTvEjnDS7uz_wfnDOadDUuHPCPIJv1gycw6A',
     ),
     Product(
