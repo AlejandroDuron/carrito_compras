@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
+import 'summary_screen.dart'; //pantalla de prueba
 
 const _brand = Color(0xFF1E88E5);
 const _blue50 = Color(0xFFEFF6FF);
@@ -54,15 +55,34 @@ class CatalogScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
-                      const _ProgressBanner(),
+                      // contador dinámico
+                      _ProgressBanner(
+                        selectedCount: cart.selectedCount,
+                      ),
                       const SizedBox(height: 16),
                       for (final product in cart.catalog) ...[
                         _ProductCard(
                           product: product,
                           selected: cart.selectedProducts.contains(product),
-                          onTap: () => context
-                              .read<CartProvider>()
-                              .toggleSelection(product),
+                          onTap: () {
+                            // impedir seleccionar más de 3 
+                            final yaSeleccionado =
+                                cart.selectedProducts.contains(product);
+                            if (!yaSeleccionado && cart.selectedCount >= 3) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Ya seleccionaste 3 productos. Quita uno para elegir otro.',
+                                  ),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+                            // context.read se usa aqui porque estamos dentro
+                            // de un callback (onPressed/onTap), no en build().
+                            context.read<CartProvider>().toggleSelection(product);
+                          },
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -76,7 +96,15 @@ class CatalogScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: const _BottomBar(),
+      // botón de Continuar
+      bottomNavigationBar: _BottomBar(
+        canProceed: cart.canProceed,
+        onContinue: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SummaryScreen()),
+          );
+        },
+      ),
     );
   }
 }
@@ -147,11 +175,17 @@ class _Header extends StatelessWidget {
   }
 }
 
+// banner de progreso con el conteo 
 class _ProgressBanner extends StatelessWidget {
-  const _ProgressBanner();
+  final int selectedCount;
+
+  const _ProgressBanner({required this.selectedCount});
 
   @override
   Widget build(BuildContext context) {
+    final faltan = 3 - selectedCount;
+    final completo = faltan == 0;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -178,13 +212,17 @@ class _ProgressBanner extends StatelessWidget {
                   color: _blue50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.notes_rounded, size: 16, color: _brand),
+                child: Icon(
+                  completo ? Icons.check_circle_rounded : Icons.notes_rounded,
+                  size: 16,
+                  color: _brand,
+                ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '2 de 3 productos seleccionados',
-                  style: TextStyle(
+                  '$selectedCount de 3 productos seleccionados',
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: _slate800,
@@ -214,9 +252,9 @@ class _ProgressBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      'Falta 1',
-                      style: TextStyle(
+                    Text(
+                      completo ? 'Completo' : 'Falta $faltan',
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: _brand,
@@ -228,18 +266,20 @@ class _ProgressBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(top: 1),
                 child: Icon(Icons.info, size: 14, color: _blue400),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Selecciona un artículo más para desbloquear la orden combinada.',
-                  style: TextStyle(fontSize: 12, color: _slate500),
+                  completo
+                      ? 'Ya puedes continuar al resumen de tu compra.'
+                      : 'Selecciona ${faltan == 1 ? "un artículo más" : "$faltan artículos más"} para continuar.',
+                  style: const TextStyle(fontSize: 12, color: _slate500),
                 ),
               ),
             ],
@@ -418,8 +458,15 @@ class _IncentiveBanner extends StatelessWidget {
   }
 }
 
+// botón continuar
 class _BottomBar extends StatelessWidget {
-  const _BottomBar();
+  final bool canProceed;
+  final VoidCallback onContinue;
+
+  const _BottomBar({
+    required this.canProceed,
+    required this.onContinue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +492,8 @@ class _BottomBar extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: null,
+                  // Solo navega cuando hay 3 seleccionados
+                  onPressed: canProceed ? onContinue : null,
                   style: FilledButton.styleFrom(
                     backgroundColor: _brand,
                     foregroundColor: Colors.white,
@@ -469,14 +517,20 @@ class _BottomBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lock_outline_rounded, size: 14, color: _slate400),
-                  SizedBox(width: 6),
+                  Icon(
+                    canProceed ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
+                    size: 14,
+                    color: _slate400,
+                  ),
+                  const SizedBox(width: 6),
                   Text(
-                    'Selecciona 3 productos para continuar',
-                    style: TextStyle(
+                    canProceed
+                        ? 'Todo listo, puedes continuar'
+                        : 'Selecciona 3 productos para continuar',
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: _slate400,
