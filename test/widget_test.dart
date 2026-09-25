@@ -5,26 +5,51 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:carrito_compras/main.dart';
+import 'package:carrito_compras/providers/cart_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('completa el flujo de selección y pago', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => CartProvider(),
+        child: const MyApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('0 de 3 productos seleccionados'), findsOneWidget);
+    expect(find.text('Resumen de compra'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    for (final productName in [
+      'Mochila Urbana Oxford',
+      'Auriculares Inalámbricos Pro',
+      'Reloj Inteligente Fit Track',
+    ]) {
+      await tester.tap(find.text(productName));
+      await tester.pump();
+    }
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('3 de 3 productos seleccionados'), findsOneWidget);
+    await tester.tap(find.text('Continuar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Resumen de compra'), findsOneWidget);
+    expect(find.text('Total:'), findsOneWidget);
+    expect(find.text('\$199.00'), findsOneWidget);
+
+    await tester.tap(find.text('Proceder a pagar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Compra realizada'), findsOneWidget);
+    expect(
+      find.text('¡Compra confirmada!\nTotal pagado: \$199.00'),
+      findsOneWidget,
+    );
   });
 }
